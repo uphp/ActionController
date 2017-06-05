@@ -12,6 +12,8 @@
          "uphp/exception": "^1.0"
     },
     "autoload": {
-        "files": ["src/ActionController.php"]
+        "psr-4":{
+            "UPhp\\ActionController\\": "src/"
+        }
     }
  }

@@ -1,5 +1,5 @@
 <?php
-namespace src;
+namespace UPhp\ActionController;
 
 class ActionController
 {
