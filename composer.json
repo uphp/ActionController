@@ -1,0 +1,17 @@
+{
+    "name": "uphp/actionController",
+    "description": "Pacote de definição dos controllers",
+    "authors": [ 
+        {
+            "name": "Diego Bentes",
+            "email": "diegopbentes@gmail.com"
+        }
+    ],    
+    "require": {
+         "php": ">=7.0.0",
+         "uphp/exception": "^1.0"
+    },
+    "autoload": {
+        "files": ["src/ActionController.php"]
+    }
+ }
