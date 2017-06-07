@@ -13,7 +13,8 @@
     },
     "autoload": {
         "psr-4":{
-            "\\UPhp\\ActionController\\": "src/"
+            "UPhp\\ActionController\\": "src/",
+            "UPhp\\ActionController\\Exception\\": "exceptions/"
         }
     }
  }
