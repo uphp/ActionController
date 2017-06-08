@@ -20,7 +20,7 @@ class ActionController
             call_user_func(array($controller, $route["ACTION"]));
             //$controller->funcAfterFilter($controller, $actionName);
         } else {
-            throw new NoRouteException();
+            throw new NoRouteException($config["URI"]);
         }
     }
 
@@ -38,7 +38,7 @@ class ActionController
                 if ($this->verifyExistLayout($options["layout"])) {
                     $layout = $this->getTemplate("app/views/layouts/" . $options["layout"] . ".php");
                 } else {
-                    throw new LayoutNotExist();
+                    throw new LayoutNotExist($options["layout"], $this->controllerName . "Controller.php");
                 }
             } elseif ($options["layout"] == false) {
                 $layout = false;

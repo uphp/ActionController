@@ -5,7 +5,8 @@ use \src\UphpException;
 
 class LayoutNotExist extends UphpException
 {
-    public function __construct(){
-        parent::__construct("Layout not found", __CLASS__);
+    public function __construct($layoutName, $fileError){
+        $this->uphpFile = ucwords($fileError);
+        parent::__construct("Layout " . $layoutName . " not found", __CLASS__);
     }
 }
