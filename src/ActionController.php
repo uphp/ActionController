@@ -14,8 +14,9 @@ class ActionController
         if ($route["VERB"] == $config["METHOD"]) {
             $className = "\\controllers\\" . ucwords($route["CONTROLLER"])."Controller";
             $controller = new $className();
+            $controller->callSet = "controller";
             $controller->controllerName = $route["CONTROLLER"];
-            $controller->actionName = $route["ACTION"];
+            $controller->actionName = $route["ACTION"];            
             //$controller->funcBeforeFilter($controller, $actionName);
             call_user_func(array($controller, $route["ACTION"]));
             //$controller->funcAfterFilter($controller, $actionName);
@@ -29,9 +30,13 @@ class ActionController
         //OPTIONS:
         // layout => informar qual layout sera utilizado
         $properties = array_keys(get_object_vars($viewObject));
+        $this->callSet = "controller";
         foreach ($properties as $propertie) {
-            $this->$propertie = $viewObject->$propertie;
+            if ($propertie != "callSet") {
+                $this->$propertie = $viewObject->$propertie;
+            }
         }
+        $this->callSet = "view";
         
         if (isset($options["layout"])) {
             if ($options["layout"] != false) {
@@ -82,4 +87,18 @@ class ActionController
         }
         return false;
     }
+
+    /*public function __set($name, $value){
+        if ($name == "callSet") {
+            $this->$name = $value;
+        } else {
+            echo $this->callSet . "| " . $name ." | " . $value . "<br>";
+                if ($this->callSet == "controller") {
+                    $this->$name = $value;
+                } elseif ($this->callSet == "view") {
+                    echo "Nao pode definir na view";
+                }
+        }
+        
+    }*/
 }
