@@ -88,6 +88,32 @@ class ActionController
         return false;
     }
 
+    protected function params()
+    {
+        if ($_SERVER['REQUEST_METHOD'] == "GET") {
+            $get_vars = $_GET;
+            unset($get_vars["_method"]);
+            return $get_vars;
+        } elseif ($_SERVER['REQUEST_METHOD'] == "POST") {
+            return $_POST;
+        } elseif ($_SERVER['REQUEST_METHOD'] == "PUT" || $_SERVER['REQUEST_METHOD'] == "DELETE") {
+            parse_str(file_get_contents("php://input"), $post_vars);
+            unset($post_vars["_method"]);
+            return $post_vars;
+        };
+    }
+
+    protected function paramsJSON(string $key = ""){
+        $params = $this->params();
+        $arrP = explode("&", $params[$key]);
+        $arrReturn = [];
+        foreach ($arrP as $element) {
+            $attr = explode("=", $element);
+            $arrReturn[$attr[0]] = $attr[1];
+        }
+        return $arrReturn;
+    }
+
     /*public function __set($name, $value){
         if ($name == "callSet") {
             $this->$name = $value;
