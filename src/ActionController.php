@@ -4,6 +4,7 @@ namespace UPhp\ActionController;
 use UPhp\ActionDispach\Routes;
 use UPhp\ActionDispach\Exception\NoRouteException;
 use UPhp\ActionController\Exception\LayoutNotExist;
+use src\Inflection;
 use UPhp\ActionView\BootstrapStyle;
 
 class ActionController
@@ -31,20 +32,18 @@ class ActionController
         //OPTIONS:
         // layout => informar qual layout sera utilizado
         $properties = array_keys(get_object_vars($viewObject));
-        $this->callSet = "controller";
         foreach ($properties as $propertie) {
-            if ($propertie != "callSet") {
-                $this->$propertie = $viewObject->$propertie;
-            }
+            $this->$propertie = $viewObject->$propertie;
         }
-        $this->callSet = "view";
-        //$this->bootstrap = new BootstrapStyle();        
-        $bootstrap = new BootstrapStyle();        
+        $bootstrap = new BootstrapStyle();
+        
+        $helperName = "\\helpers\\" . ucwords(Inflection::singularize($this->controllerName))."Helper";
+        $helper = new $helperName;
         
         if (isset($options["layout"])) {
             if ($options["layout"] != false) {
                 if ($this->verifyExistLayout($options["layout"])) {
-                    $layout = $this->getTemplate("app/views/layouts/" . $options["layout"] . ".php", $bootstrap);
+                    $layout = $this->getTemplate("app/views/layouts/" . $options["layout"] . ".php", $bootstrap, $helper);
                 } else {
                     throw new LayoutNotExist($options["layout"], $this->controllerName . "Controller.php");
                 }
@@ -53,13 +52,13 @@ class ActionController
             }
         } else {
             if ($this->verifyExistLayout($this->controllerName)) {
-                $layout = $this->getTemplate("app/views/layouts/" . $this->controllerName . ".php", $bootstrap);
+                $layout = $this->getTemplate("app/views/layouts/" . $this->controllerName . ".php", $bootstrap, $helper);
             } else {
-                $layout = $this->getTemplate("app/views/layouts/application.php", $bootstrap);
+                $layout = $this->getTemplate("app/views/layouts/application.php", $bootstrap, $helper);
             }
         }
         
-        $page_html = $this->getTemplate("app/views/" . $this->controllerName . "/" . $this->actionName . ".php", $bootstrap);
+        $page_html = $this->getTemplate("app/views/" . $this->controllerName . "/" . $this->actionName . ".php", $bootstrap, $helper);
         if ($layout != false) {
             $page = str_replace("{{ PAGE }}", $page_html, $layout);
         } else {
@@ -69,7 +68,7 @@ class ActionController
         echo $page;
     }
 
-    private function getTemplate($file, $bootstrap)
+    private function getTemplate($file, $bootstrap, $helper)
     {
         ob_start(); // start output buffer
         include $file;
