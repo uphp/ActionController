@@ -4,6 +4,7 @@ namespace UPhp\ActionController;
 use UPhp\ActionDispach\Routes;
 use UPhp\ActionDispach\Exception\NoRouteException;
 use UPhp\ActionController\Exception\LayoutNotExist;
+use UPhp\ActionView\BootstrapStyle;
 
 class ActionController
 {
@@ -37,11 +38,13 @@ class ActionController
             }
         }
         $this->callSet = "view";
+        //$this->bootstrap = new BootstrapStyle();        
+        $bootstrap = new BootstrapStyle();        
         
         if (isset($options["layout"])) {
             if ($options["layout"] != false) {
                 if ($this->verifyExistLayout($options["layout"])) {
-                    $layout = $this->getTemplate("app/views/layouts/" . $options["layout"] . ".php");
+                    $layout = $this->getTemplate("app/views/layouts/" . $options["layout"] . ".php", $bootstrap);
                 } else {
                     throw new LayoutNotExist($options["layout"], $this->controllerName . "Controller.php");
                 }
@@ -50,23 +53,23 @@ class ActionController
             }
         } else {
             if ($this->verifyExistLayout($this->controllerName)) {
-                $layout = $this->getTemplate("app/views/layouts/" . $this->controllerName . ".php");
+                $layout = $this->getTemplate("app/views/layouts/" . $this->controllerName . ".php", $bootstrap);
             } else {
-                $layout = $this->getTemplate("app/views/layouts/application.php");
+                $layout = $this->getTemplate("app/views/layouts/application.php", $bootstrap);
             }
         }
         
-        $page_html = $this->getTemplate("app/views/" . $this->controllerName . "/" . $this->actionName . ".php");
+        $page_html = $this->getTemplate("app/views/" . $this->controllerName . "/" . $this->actionName . ".php", $bootstrap);
         if ($layout != false) {
             $page = str_replace("{{ PAGE }}", $page_html, $layout);
         } else {
             $page = $page_html;
         }
-        
+
         echo $page;
     }
 
-    private function getTemplate($file)
+    private function getTemplate($file, $bootstrap)
     {
         ob_start(); // start output buffer
         include $file;
