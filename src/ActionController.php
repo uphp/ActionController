@@ -2,7 +2,6 @@
 namespace UPhp\ActionController;
 
 use UPhp\ActionDispach\Routes;
-use UPhp\ActionDispach\Exception\NoRouteException;
 use UPhp\ActionController\Exception\LayoutNotExist;
 use src\Inflection;
 use UPhp\ActionView\BootstrapStyle;
@@ -12,19 +11,15 @@ class ActionController
     public static function callController($config)
     {
         $url = explode("?", $config["URI"])[0];
-        $route = Routes::getControllerActionByURL($url);
-        if ($route["VERB"] == $config["METHOD"]) {
-            $className = "\\controllers\\" . ucwords($route["CONTROLLER"])."Controller";
-            $controller = new $className();
-            $controller->callSet = "controller";
-            $controller->controllerName = $route["CONTROLLER"];
-            $controller->actionName = $route["ACTION"];            
-            //$controller->funcBeforeFilter($controller, $actionName);
-            call_user_func(array($controller, $route["ACTION"]));
-            //$controller->funcAfterFilter($controller, $actionName);
-        } else {
-            throw new NoRouteException($config["URI"]);
-        }
+        $route = Routes::getControllerAction($config);
+        $className = "\\controllers\\" . ucwords($route["CONTROLLER"])."Controller";
+        $controller = new $className();
+        $controller->callSet = "controller";
+        $controller->controllerName = $route["CONTROLLER"];
+        $controller->actionName = $route["ACTION"];            
+        //$controller->funcBeforeFilter($controller, $actionName);
+        call_user_func(array($controller, $route["ACTION"]));
+        //$controller->funcAfterFilter($controller, $actionName);
     }
 
     public function render($viewObject, $options = [])
@@ -111,7 +106,11 @@ class ActionController
         $arrReturn = [];
         foreach ($arrP as $element) {
             $attr = explode("=", $element);
-            $arrReturn[$attr[0]] = $attr[1];
+            if (isset($attr[1])) {
+                $arrReturn[$attr[0]] = $attr[1];
+            } else {
+                $arrReturn[$attr[0]] = null;
+            }
         }
         return $arrReturn;
     }
