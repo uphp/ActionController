@@ -85,14 +85,23 @@ class ActionController
         return false;
     }
 
-    protected function params()
+    protected function params($strArray = "")
     {
         if ($_SERVER['REQUEST_METHOD'] == "GET") {
-            $get_vars = $_GET;
+            if (empty($strArray)) {
+                $get_vars = $_GET;
+            } else {
+                $get_vars = $_GET[$strArray];
+            }
             unset($get_vars["_method"]);
             return $get_vars;
         } elseif ($_SERVER['REQUEST_METHOD'] == "POST") {
-            return $_POST;
+            if (empty($strArray)) {
+                $post_vars = $_POST;
+            } else {
+                $post_vars = $_POST[$strArray];
+            }
+            return $post_vars;
         } elseif ($_SERVER['REQUEST_METHOD'] == "PUT" || $_SERVER['REQUEST_METHOD'] == "DELETE") {
             parse_str(file_get_contents("php://input"), $post_vars);
             unset($post_vars["_method"]);
