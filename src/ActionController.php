@@ -26,6 +26,7 @@ class ActionController
     {
         //OPTIONS:
         // layout => informar qual layout sera utilizado
+        // view => nome da view que deverá ser carregada
         $properties = array_keys(get_object_vars($viewObject));
         foreach ($properties as $propertie) {
             $this->$propertie = $viewObject->$propertie;
@@ -52,8 +53,14 @@ class ActionController
                 $layout = $this->getTemplate("app/views/layouts/application.php", $bootstrap, $helper);
             }
         }
-        
-        $page_html = $this->getTemplate("app/views/" . $this->controllerName . "/" . $this->actionName . ".php", $bootstrap, $helper);
+
+        if (isset($options["view"])) {
+            $loadView = $options["view"];
+        } else {
+            $loadView = $this->actionName;
+        }
+
+        $page_html = $this->getTemplate("app/views/" . $this->controllerName . "/" . $loadView . ".php", $bootstrap, $helper);
         if ($layout != false) {
             $page = str_replace("{{ PAGE }}", $page_html, $layout);
         } else {
