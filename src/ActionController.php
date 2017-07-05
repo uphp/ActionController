@@ -8,18 +8,20 @@ use UPhp\ActionView\BootstrapStyle;
 
 class ActionController
 {
+    public $beforeFilter = array();
+
     public static function callController($config)
     {
         $url = explode("?", $config["URI"])[0];
         $route = Routes::getControllerAction($config);
-        $className = "\\controllers\\" . ucwords($route["CONTROLLER"])."Controller";
+        $className = "\\controllers\\" . ucwords(Inflection::classify($route["CONTROLLER"]))."Controller";
         $controller = new $className();
         $controller->callSet = "controller";
         $controller->controllerName = $route["CONTROLLER"];
         $controller->actionName = $route["ACTION"];            
-        //$controller->funcBeforeFilter($controller, $actionName);
+        $controller->funcBeforeAction($controller->controllerName, $controller->actionName);
         call_user_func(array($controller, $route["ACTION"]));
-        //$controller->funcAfterFilter($controller, $actionName);
+        //$controller->funcAfterAction($controller, $actionName);
     }
 
     public function render($viewObject, $options = [])
@@ -28,18 +30,17 @@ class ActionController
         // layout => informar qual layout sera utilizado
         // view => nome da view que deverá ser carregada
         $properties = array_keys(get_object_vars($viewObject));
-        foreach ($properties as $propertie) {
-            $this->$propertie = $viewObject->$propertie;
+        foreach ($properties as $property) {
+            $this->$property = $viewObject->$property;
         }
-        $bootstrap = new BootstrapStyle();
-        
-        $helperName = "\\helpers\\" . ucwords(Inflection::singularize($this->controllerName))."Helper";
-        $helper = new $helperName;
+
+        $helperName = "\\helpers\\" . ucwords(Inflection::classify(Inflection::singularize($this->controllerName)))."Helper";
+        $arrGetTemplate = ["bootstrap" => new BootstrapStyle(), "helper" => new $helperName, "inflection" => new Inflection()];
         
         if (isset($options["layout"])) {
             if ($options["layout"] != false) {
                 if ($this->verifyExistLayout($options["layout"])) {
-                    $layout = $this->getTemplate("app/views/layouts/" . $options["layout"] . ".php", $bootstrap, $helper);
+                    $layout = $this->getTemplate("app/views/layouts/" . $options["layout"] . ".php", $arrGetTemplate);
                 } else {
                     throw new LayoutNotExist($options["layout"], $this->controllerName . "Controller.php");
                 }
@@ -48,9 +49,9 @@ class ActionController
             }
         } else {
             if ($this->verifyExistLayout($this->controllerName)) {
-                $layout = $this->getTemplate("app/views/layouts/" . $this->controllerName . ".php", $bootstrap, $helper);
+                $layout = $this->getTemplate("app/views/layouts/" . $this->controllerName . ".php", $arrGetTemplate);
             } else {
-                $layout = $this->getTemplate("app/views/layouts/application.php", $bootstrap, $helper);
+                $layout = $this->getTemplate("app/views/layouts/application.php", $arrGetTemplate);
             }
         }
 
@@ -60,7 +61,7 @@ class ActionController
             $loadView = $this->actionName;
         }
 
-        $page_html = $this->getTemplate("app/views/" . $this->controllerName . "/" . $loadView . ".php", $bootstrap, $helper);
+        $page_html = $this->getTemplate("app/views/" . $this->controllerName . "/" . $loadView . ".php", $arrGetTemplate);
         if ($layout != false) {
             $page = str_replace("{{ PAGE }}", $page_html, $layout);
         } else {
@@ -70,8 +71,11 @@ class ActionController
         echo $page;
     }
 
-    private function getTemplate($file, $bootstrap, $helper)
+    private function getTemplate($file, Array $variables)
     {
+        foreach ($variables as $var => $value) {
+            $$var = $value;
+        }
         ob_start(); // start output buffer
         include $file;
         $template = ob_get_contents(); // get contents of buffer
@@ -129,6 +133,37 @@ class ActionController
             }
         }
         return $arrReturn;
+    }
+
+    protected function funcBeforeAction($controller, $action)
+    {
+        foreach ($this->beforeFilter as &$func) {
+            if (isset($func["except"]) && isset($func["only"])) {
+                throw new Exception('Não é possível usar EXCEPT e ONLY no mesmo beforeFilter'); //TODO Criar novo exception
+            } else {
+                if (isset($func["except"])) {
+                    if (!in_array($action, $func["except"])) {
+                        if (method_exists($this, $func["function"])) {
+                            call_user_func(array($this, $func["function"]));
+                        } else {
+                            throw new Exception("Método não definido na classe:: EXCEPT");
+                        }
+                    }
+                } elseif (isset($func["only"])) {
+                    foreach ($func["only"] as &$value) {
+                        if ($value == $action) {
+                            if (method_exists($this, $func["function"])) {
+                                call_user_func(array($this, $func["function"]));
+                            } else {
+                                throw new Exception("Método não definido na classe:: ONLY");
+                            }
+                        }
+                    }
+                } else {
+                    call_user_func(array($this, $func["function"]));
+                }
+            }
+        }
     }
 
     /*public function __set($name, $value){
