@@ -1,6 +1,7 @@
 <?php
 namespace UPhp\ActionController;
 
+use UPhp\web\Application as App;
 use UPhp\ActionDispach\Routes;
 use UPhp\ActionController\Exception\LayoutNotExist;
 use src\Inflection;
@@ -35,7 +36,8 @@ class ActionController
         }
 
         $helperName = "\\helpers\\" . ucwords(Inflection::classify(Inflection::singularize($this->controllerName)))."Helper";
-        $arrGetTemplate = ["bootstrap" => new BootstrapStyle(), "helper" => new $helperName, "inflection" => new Inflection()];
+        $template = "UPhp\\ActionView\\Templates\\" . App::$appConfig["template"] . "\\Layout";
+        $arrGetTemplate = ["bootstrap" => new BootstrapStyle(), "helper" => new $helperName, "inflection" => new Inflection(), "template" => new $template];
         
         if (isset($options["layout"])) {
             if ($options["layout"] != false) {
