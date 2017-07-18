@@ -37,12 +37,17 @@ class ActionController
         }
 
         $helperName = "\\helpers\\" . ucwords(Inflection::classify(Inflection::singularize($this->controllerName)))."Helper";
+
         $template = "UPhp\\ActionView\\Templates\\" . App::$appConfig["template"] . "\\Layout";
+        $template = new $template;
+        $template->controllerName = $this->controllerName;
+        $template->actionName = $this->actionName;
+
         $arrGetTemplate = [
             "bootstrap" => new BootstrapStyle(),
             "helper" => new $helperName,
             "inflection" => new Inflection(),
-            "template" => new $template,
+            "template" => $template,
             "form" => new FormHelper()
         ];
         
