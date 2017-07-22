@@ -38,10 +38,14 @@ class ActionController
 
         $helperName = "\\helpers\\" . ucwords(Inflection::classify(Inflection::singularize($this->controllerName)))."Helper";
 
-        $template = "UPhp\\ActionView\\Templates\\" . App::$appConfig["template"] . "\\Layout";
-        $template = new $template;
-        $template->controllerName = $this->controllerName;
-        $template->actionName = $this->actionName;
+        if (isset(App::$appConfig["template"])) {
+            $template = "UPhp\\ActionView\\Templates\\" . App::$appConfig["template"] . "\\Layout";
+            $template = new $template;
+            $template->controllerName = $this->controllerName;
+            $template->actionName = $this->actionName;
+        } else {
+            $template = null;
+        }
 
         $arrGetTemplate = [
             "bootstrap" => new BootstrapStyle(),
